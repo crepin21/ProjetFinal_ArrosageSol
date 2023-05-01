@@ -1,10 +1,18 @@
+/*
+  Titre      : SystemeD'IrrigationDePlantes
+  Auteur     : Crepin Vardin Fouelefack
+  Date       : 04/21/2023
+  Description: Arrosage du sol en fonction de l'humidite et de l'interval de temps
+  Version    : 0.0.1
+*/
+
 #include <Arduino.h>
 #include <Servo.h>
 
 Servo myservo;  // create servo object to control a servo
 // twelve servo objects can be created on most boards
 
-int pos                  = 0;    // variable to store the servo position
+int pos                  = 0; // variable to store the servo position
 bool posi                = 0;   
 const int greenLedPin    = 2; // Pin de la LED verte
 const int redLedPin      = 3; // Pin de la LED rouge
@@ -12,6 +20,7 @@ const int yellowLedPin   = 4; // Pin de la LED jaune
 
 bool ConditionSyst    = 0; 
 bool EtatPinVert      = 0;
+bool EtatPinRouge     = 0;
 
 // Durée minimale entre deux arrosages  (en secondes)
 int SecDuration  = 60;
@@ -37,10 +46,10 @@ void setup(){
 
   pinMode(greenLedPin, OUTPUT); // Configuration de la LED verte en sortie
   pinMode(redLedPin, OUTPUT); // Configuration de la LED rouge en sortie
+  pinMode(yellowLedPin, OUTPUT); // Configuration de la LED jaune en sortie
 
   // Initialisation de la dernière minute d'arrosage
   LastWaterTime = millis();
-
 
 }
 
@@ -65,8 +74,18 @@ int sensorValue = analogRead(A0); // Lecture de la valeur du capteur d'humidité
       posi = 0; 
     }
     digitalWrite(greenLedPin, HIGH); // Allumage de la LED verte
+     if (EtatPinVert == 1 && (millis() - LastWaterTime) < 60000) // Si la LED verte est allumée et le temps écoulé est inférieur à 1 minute
+    {
+      digitalWrite(yellowLedPin, HIGH); // Allumage de la LED jaune systeme corrompu
+    }
+    else
+    {
+      digitalWrite(yellowLedPin, LOW); // Extinction de la LED jaune
+    }
+    
     EtatPinVert = 0; 
     digitalWrite(redLedPin, LOW); // Extinction de la LED rouge
+    EtatPinRouge = 1;
     // Enregistrement de l'heure d'arrosage
     LastWaterTime = millis();
   } 
@@ -83,9 +102,17 @@ int sensorValue = analogRead(A0); // Lecture de la valeur du capteur d'humidité
       digitalWrite(greenLedPin, LOW); // Extinction de la LED verte 
       EtatPinVert = 1;
       digitalWrite(redLedPin, HIGH); // Allumage de la LED rouge
+      EtatPinRouge = 0;
       posi = 1;
     }
   }
+  if (EtatPinVert == 0 && EtatPinRouge == 0)
+  {
+    Serial.print("Systeme compromi"); 
+  }
+  else
+  {
+    Serial.print("Systeme fonctionne correctement"); 
+  }
     delay(100);
-
 }
